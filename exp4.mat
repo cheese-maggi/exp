@@ -1,0 +1,53 @@
+clear;
+
+%load ecg signal
+fid = fopen('rec_1.dat','r');
+data = fread(fid, 'int16');
+fclose(fid);
+ecg_signal = data(1:2:end);
+
+% define parameters
+fs = 500;
+t = (0: length(ecg_signal)-1)/fs;
+
+%high pass filtering
+h_cutoff = 0.5;
+[b_h, a_h] = butter(2, h_cutoff/(fs/2), 'high');
+h_filtered = filtfilt(b_h, a_h, ecg_signal);
+
+%low pass filtering
+l_cutoff = 50;
+[b_l, a_l] = butter(2, l_cutoff/(fs/2), 'low');
+l_filtered = filtfilt(b_l, a_l, h_filtered);
+
+
+% Dynamic thresholds for peak detection
+min_height = 0.5 * max(l_filtered); % 30% of the maximum signal amplitude
+min_distance = fs/300; % Minimum distance between peaks (~165 samples)
+
+% Detect peaks
+[peaks, locs] = findpeaks(l_filtered, 'MinPeakHeight', min_height, 'MinPeakDistance', min_distance);
+
+
+%plot each fckin thing
+figure;
+subplot(4,1,1);
+plot(t, ecg_signal);
+title("Original signal");
+subplot(4,1,2);
+plot(t, h_filtered);
+title("High pass filtered signal");
+subplot(4,1,3);
+plot(t, l_filtered);
+title("Low pass filtered signal");
+subplot(4,1,4);
+plot(t, l_filtered); 
+hold on;
+plot(t(locs), peaks, 'ro');
+title("Ecg signal with peaks");
+
+% calculate heart rate 
+rr_interval = diff(locs)/fs;
+heart_rate = 60 / mean(rr_interval);
+disp("Heart rate is: ");
+disp(heart_rate);
