@@ -1,0 +1,68 @@
+clear;
+
+% Load the ECG signal
+data = load('100m.mat');
+ecg_signal = data.val(1,:);
+
+% Define parameters and AWGN
+fs = 500;  % Sampling frequency
+t = (0:length(ecg_signal)-1)/fs;
+SNR_dB = 20;  % Adjusted SNR to make noise more visible
+
+% Generate major baseline wander (low-frequency sinusoid with larger amplitude)
+baseline_freq = 0.1;  % Baseline drift frequency in Hz (lower frequency for stronger drift)
+baseline_amplitude = 2;  % Increased amplitude of baseline wander for a major drift
+baseline_wander = baseline_amplitude * sin(2 * pi * baseline_freq * t);  % Sine wave for baseline wander
+
+% Add noise using AWGN function
+noisy_signal = awgn(ecg_signal, SNR_dB, 'measured');
+noisy_signal=noisy_signal+baseline_wander;
+
+% Cutoff frequencies
+l_cutoff = 50;    % Low-pass cutoff
+h_cutoff = 0.5;   % High-pass cutoff
+b_cutoff = [30, 249]; % Notch filter band
+
+% Low-pass filter (2nd order)
+[b_l, a_l] = butter(4, l_cutoff/(fs/2), 'low'); % Increased filter order to 4
+l_filtered = filtfilt(b_l, a_l, noisy_signal);
+
+% High-pass filter (2nd order)
+[b_h, a_h] = butter(4, h_cutoff/(fs/2), 'high'); % Increased filter order to 4
+h_filtered = filtfilt(b_h, a_h, noisy_signal);
+
+% Notch filter (band stop) (2nd order)
+[b_n, a_n] = butter(4, b_cutoff/(fs/2), 'stop'); % Increased filter order to 4
+n_filtered = filtfilt(b_n, a_n, noisy_signal);
+
+% Plot all figures
+figure;
+subplot(5,1,1);
+plot(t, ecg_signal);
+hold on;
+plot(t, baseline_wander, 'r--');  % Plot baseline wander for comparison
+title('Original Signal'); xlabel('Time (s)'); ylabel('Amplitude');
+
+subplot(5,1,2);
+plot(t, noisy_signal);
+hold on;
+plot(t, baseline_wander, 'r--');  % Plot baseline wander for comparison
+title('Noisy Signal'); xlabel('Time (s)'); ylabel('Amplitude');
+
+subplot(5,1,3);
+plot(t, l_filtered);
+hold on;
+plot(t, baseline_wander, 'r--');  % Plot baseline wander for comparison
+title('Low Pass filtered Signal'); xlabel('Time (s)'); ylabel('Amplitude');
+
+subplot(5,1,4);
+plot(t, h_filtered);
+hold on;
+plot(t, baseline_wander, 'r--');  % Plot baseline wander for comparison
+title('High Pass filtered Signal'); xlabel('Time (s)'); ylabel('Amplitude');
+
+subplot(5,1,5);
+plot(t, n_filtered);
+hold on;
+plot(t, baseline_wander, 'r--');  % Plot baseline wander for comparison
+title('Notch Filtered Signal'); xlabel('Time (s)'); ylabel('Amplitude');
