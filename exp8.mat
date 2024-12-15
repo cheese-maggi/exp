@@ -1,0 +1,25 @@
+clear;
+% Load ECG signal
+data = load('rec_1m.mat');
+ % Sampling frequency (adjust if needed)
+
+% Check field names in the loaded data structure
+fieldnames(data);
+
+% Extract ECG signal (replace 'val' with the correct field name if different)
+% Select the first row (channel) of the matrix
+ecg_signal = data.val(1, :);
+
+%define parameters
+fs = 250;
+t = (0: length(ecg_signal) - 1)/fs;
+N = length(ecg_signal);
+ecg_fft = fft(ecg_signal);
+ 
+figure;
+subplot(2,1,1);
+plot(t,ecg_signal);
+title("Original Signal");
+subplot(2,1,2);
+plot((1:floor(N/2)), abs(ecg_fft(1:floor(N/2))));
+title("FFT of Signal");
