@@ -1,0 +1,57 @@
+% Load ECG signal
+data = load('rec_1m.mat');
+fs = 1000; % Sampling frequency (adjust if needed)
+
+% Check field names in the loaded data structure
+fieldnames(data)
+
+% Extract ECG signal (replace 'val' with the correct field name if different)
+ecg_signal = data.val(1,:); 
+
+% Ensure the signal is a row vector for processing
+% ecg_signal = ecg_signal(:);
+
+% Design and apply a high-pass filter
+hp_cutoff = 0.5; % High-pass cutoff frequency in Hz
+hp_order = 4; % Filter order
+[b_hp, a_hp] = butter(hp_order, hp_cutoff / (fs / 2), 'high'); 
+ecg_highpass = filtfilt(b_hp, a_hp, noisy_signal1);
+
+% Design and apply a low-pass filter
+lp_cutoff = 50; % Low-pass cutoff frequency in Hz
+lp_order = 4; % Filter order
+[b_lp, a_lp] = butter(lp_order, lp_cutoff / (fs / 2), 'low'); 
+ecg_lowpass = filtfilt(b_lp, a_lp, ecg_highpass);
+
+% Time vector for plotting
+time = (0:length(ecg_signal) - 1) / fs;
+
+% Plot original and processed ECG signals
+figure;
+
+% Original ECG signal
+subplot(3, 1, 1);
+plot(time, ecg_signal);
+hold on;
+plot(t, baseline_wander, 'r--');  % Plot baseline wander for comparison
+title('Original ECG Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+% High-pass filtered ECG signal
+subplot(3, 1, 2);
+plot(time, ecg_highpass);
+hold on;
+plot(t, baseline_wander, 'r--');  % Plot baseline wander for comparison
+title('ECG Signal After High-Pass Filtering');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+% Low-pass filtered ECG signal
+subplot(3, 1, 3);
+plot(time, ecg_lowpass);
+hold on;
+plot(t, baseline_wander, 'r--');  % Plot baseline wander for comparison
+title('ECG Signal After Low-Pass Filtering');
+xlabel('Time (s)');
+ylabel('Amplitude');
