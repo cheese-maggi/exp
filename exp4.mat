@@ -1,11 +1,11 @@
 clear;
+% Load ECG signal
+data = load('rec_1m.mat');
+% Check field names in the loaded data structure
+fieldnames(data)
 
-%load ecg signal
-fid = fopen('rec_1.dat','r');
-data = fread(fid, 'int16');
-fclose(fid);
-ecg_signal = data(1:2:end);
-
+% Extract ECG signal (replace 'val' with the correct field name if different)
+ecg_signal = data.val(1,:); 
 % define parameters
 fs = 500;
 t = (0: length(ecg_signal)-1)/fs;
@@ -23,7 +23,7 @@ l_filtered = filtfilt(b_l, a_l, h_filtered);
 
 % Dynamic thresholds for peak detection
 min_height = 0.5 * max(l_filtered); % 30% of the maximum signal amplitude
-min_distance = fs/300; % Minimum distance between peaks (~165 samples)
+min_distance = fs/3; % Minimum distance between peaks (~165 samples)
 
 % Detect peaks
 [peaks, locs] = findpeaks(l_filtered, 'MinPeakHeight', min_height, 'MinPeakDistance', min_distance);
