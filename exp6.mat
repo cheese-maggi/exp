@@ -1,7 +1,7 @@
 clear;
 
 % Load the ECG signal
-data = load('100m.mat');
+data = load('rec_1m.mat');
 ecg_signal = data.val(1,:);
 
 % Define parameters and AWGN
